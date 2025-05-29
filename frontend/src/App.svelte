@@ -1,10 +1,25 @@
 <script>
+    import { onMount } from 'svelte';
     import Counter from './lib/Counter.svelte';
     import Login from './lib/Login.svelte';
     import FileList from './lib/FileList.svelte';
     import NeoDriveLogo from './assets/NeoDriveLogo.png';
 
     let loggedIn = false;
+    let lastKeyPressed = '';
+    let keyPressedCounter = 0;
+
+    function handleKeyDown (event) {
+        console.log("Key pressed", event.key);
+        lastKeyPressed = event.key;
+        keyPressedCounter++;
+    }
+
+    onMount(() => {
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    })
+
 
 </script>
 
@@ -17,7 +32,7 @@
     </figure>
 
     <Counter />
-    <FileList />
+    <FileList {lastKeyPressed } {keyPressedCounter}/>
 {/if}
 
 

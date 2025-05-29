@@ -2,6 +2,11 @@
     let { loggedIn = $bindable() } = $props();
     let password = $state("");
     let showNotification = $state(false);
+    let message = $state({
+        1: "" ,
+        2: "" ,
+        3: "" ,
+    });
 
     async function handleLogin() {
         console.log("logged in with password:", password);
@@ -20,10 +25,33 @@
             console.log("Show notification")
             showNotification = true;
         }
+        password = '';
     }
+    let i = 0;
+    function addLetter() {
+        let letters = "Welcome to NeoDrive";
+        if (i < 11) {
+            message[1] += letters[i];
+        } else if ( i <= 13 ) {
+            message[2] += letters[i];
+        } else {
+            message[3] += letters[i];
+        }
+        i++;
+    }
+
+    let id = setInterval(() => {
+
+        if (i > 18) {
+            clearInterval(id);
+            return
+        }
+        addLetter();
+
+    }, 100)
 </script>
 
-<p class="title is-1 ml-6 mt-6">Welcome to <span class="neo">Neo</span><span class="drive">Drive</span> <span class="cursor">&#9611;</span></p>
+<p class="title is-1 ml-6 mt-6">{ message[1] } <span class="neo">{ message[2] } </span><span class="drive">{ message[3] } </span> <span class="cursor">&#9611;</span></p>
 <div class="section is-medium">
     <p class="title is-1 has-text-centered">Login.</p>
 </div>
@@ -39,10 +67,6 @@
                     }
                 }}
                 class="input" type="password" bind:value={password} autofocus />
-<!-- {#if showNotification }
-            <p class="help is-danger has-text-weight-bold">INVALID CREDENTIALS</p>
-            {/if}
--->
             </div>
             <p class="control">
                 <button
