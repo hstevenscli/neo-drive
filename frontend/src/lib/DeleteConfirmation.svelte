@@ -1,9 +1,10 @@
 <script>
-    let { deleteModalActive = $bindable(''), files = $bindable(), fileToDelete, lastKeyPressed, getFiles } = $props();
+    import { setLKP, getLKP } from "./state.svelte";
+    let { deleteModalActive = $bindable(''), files = $bindable(), fileToDelete, getFiles } = $props();
 
     $effect(() => {
         if (deleteModalActive === 'is-active') {
-            console.log("inside delete component", lastKeyPressed);
+            console.log("inside delete component", getLKP());
             handleKey();
         }
     })
@@ -29,33 +30,37 @@
 
 
     async function handleKey() {
-        if (lastKeyPressed === 'Escape') {
+        if (getLKP() === 'Escape') {
             deleteModalActive = '';
         }
-        if (lastKeyPressed === 'y' || lastKeyPressed === 'Y') {
+        if (getLKP() === 'y' || getLKP() === 'Y') {
             confirmDelete();
         }
-        if (lastKeyPressed === 'n' || lastKeyPressed === 'N') {
+        if (getLKP() === 'n' || getLKP() === 'N') {
             deleteModalActive = '';
         }
+    }
+
+    function closeModal() {
+        // use p because it doesnt do anything
+        setLKP('p');
+        deleteModalActive = '';
     }
 
 </script>
 
 
-{#if deleteModalActive === 'is-active'}
-<div class="modal is-active has-text-centered">
+<div class="modal { deleteModalActive } has-text-centered">
   <div class="modal-background"></div>
   <div class="modal-content">
     <p class="title is-3">Are you sure you want to delete:<br><span class="has-text-primary">{fileToDelete}</span></p>
     <div class="buttons is-flex is-justify-content-center">
-      <button on:click={confirmDelete} class="button is-danger">(Y)es</button>
-      <button on:click={() => deleteModalActive = ''} class="button is-link">(N)o</button>
+        <button onclick={() => {confirmDelete(); closeModal()}} class="button is-danger">(Y)es</button>
+      <button onclick={closeModal} class="button is-link">(N)o</button>
     </div>
   </div>
-  <button on:click={() => deleteModalActive = ''} class="modal-close is-large" aria-label="close"></button>
+  <button onclick={closeModal} class="modal-close is-large" aria-label="close"></button>
 </div>
-{/if}
 
 
 <style>

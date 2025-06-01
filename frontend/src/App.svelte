@@ -4,14 +4,15 @@
     import Login from './lib/Login.svelte';
     import FileList from './lib/FileList.svelte';
     import Navbar from './lib/Navbar.svelte';
+    import { setLKP, getLKP } from './lib/state.svelte';
+
 
     let loggedIn = false;
-    let lastKeyPressed = '';
     let keyPressedCounter = 0;
 
     function handleKeyDown (event) {
         console.log("Key pressed", event.key);
-        lastKeyPressed = event.key;
+        setLKP(event.key);
         keyPressedCounter++;
     }
 
@@ -30,7 +31,7 @@
 
 {:else}
     <Counter />
-    <FileList {lastKeyPressed } {keyPressedCounter}/>
+    <FileList {keyPressedCounter}/>
 {/if}
 
 

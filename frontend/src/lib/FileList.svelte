@@ -2,10 +2,10 @@
     import FileUpload from './FileUpload.svelte';
     import DeleteConfirmation from './DeleteConfirmation.svelte';
     import { tick, untrack } from 'svelte';
-    import { getTheme } from './state.svelte';
+    import { setLKP, getLKP, getTheme, setTheme } from './state.svelte';
     import { onMount } from 'svelte';
 
-    let { lastKeyPressed , keyPressedCounter} = $props();
+    let { keyPressedCounter} = $props();
 
     let deleteModalActive = $state('');
     let fileToDelete = $state('');
@@ -54,7 +54,7 @@
     })
 
     function handleKey() {
-        switch (lastKeyPressed) {
+        switch (getLKP()) {
             case "j":
                 decreaseIndex();
                 break;
@@ -76,7 +76,6 @@
             case "x":
                 fileToDelete = files[fileIndex];
                 deleteModalActive = 'is-active';
-                lastKeyPressed = '';
                 break;
             case "d":
                 downloadFile(files[fileIndex]);
@@ -126,7 +125,7 @@
 
 </script>
 
-    <DeleteConfirmation bind:deleteModalActive { getFiles } { files } { fileToDelete} { lastKeyPressed } />
+    <DeleteConfirmation bind:deleteModalActive { getFiles } { files } { fileToDelete} />
     <FileUpload { getFiles }></FileUpload>
     <br>
 
@@ -145,6 +144,7 @@
                     </span>
                 </button>
                 <button onclick={() => {
+                    setLKP('p');
                     fileToDelete = file;
                     deleteModalActive = 'is-active';
                     document.activeElement.blur();
