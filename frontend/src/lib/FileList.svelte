@@ -4,6 +4,7 @@
     import { tick, untrack } from 'svelte';
     import { setLKP, getLKP, getTheme, setTheme } from './state.svelte';
     import { onMount } from 'svelte';
+    import { toggleTheme } from './state.svelte';
 
     let { keyPressedCounter} = $props();
 
@@ -92,6 +93,12 @@
             case "?":
                 console.log("Opening Help Menu");
                 break;
+            case "t":
+                toggleTheme();
+                break;
+            case "v":
+                readFile(files[fileIndex]);
+                break;
         }
         adjustIndex();
     }
@@ -123,6 +130,11 @@
         console.log(`Deleting ${filename}`);
     }
 
+    async function readFile(filename) {
+        let response = await fetch("http://localhost:8080/view/" + filename);
+        let message = await response.json();
+        console.log(message);
+    }
 </script>
 
     <DeleteConfirmation bind:deleteModalActive { getFiles } { files } { fileToDelete} />

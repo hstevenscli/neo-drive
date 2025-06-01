@@ -18,3 +18,12 @@ export function getTheme() {
 export function setTheme(mode) {
     theme = mode;
 }
+
+export function toggleTheme() {
+    if (getTheme() === 'dark') {
+        setTheme('light');
+    } else {
+        setTheme('dark')
+    }
+    document.documentElement.setAttribute('data-theme', getTheme());
+}

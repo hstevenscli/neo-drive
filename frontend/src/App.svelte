@@ -35,7 +35,6 @@
 {/if}
 
 
-
 <p>logged In {loggedIn}</p>
 
 <style>

@@ -26,6 +26,21 @@ var validPasswords = map[string]bool{
 	"monke": true,
 }
 
+var viewableFileTypes = map[string]bool {
+	"txt": true,
+	"html": true,
+	"md": true,
+	"cpp": true,
+	"py": true,
+	"cxx": true,
+	"c": true,
+	"h": true,
+	"csv": true,
+	"png": false,
+	"jpg": false,
+	"jpeg": false,
+}
+
 func postLogin(c *gin.Context) {
 	var pw Password
 	if err := c.BindJSON(&pw); err != nil {
@@ -82,6 +97,18 @@ func getFileByName(c *gin.Context) {
     filename := c.Param("filename")
     c.Header("Content-Disposition", "attachment; filename=" + filename)
     c.File("./uploads/" + filename)
+}
+
+func viewFile(c *gin.Context) {
+	filename := c.Param("filename")
+	data, err := os.ReadFile("./uploads/" + filename)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "File Not Found"})
+		return
+	}
+	os.Stdout.Write(data)
+	s := string(data)
+	c.JSON(200, s)
 }
 
 func deleteFileByName(c *gin.Context) {

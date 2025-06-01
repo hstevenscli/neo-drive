@@ -24,7 +24,8 @@ func main() {
 
 	// GET ROUTES
 	r.GET("/files", getFiles)
-	r.GET("files/:filename", getFileByName)
+	r.GET("/files/:filename", getFileByName)
+	r.GET("/view/:filename", viewFile)
 
 	// POST ROUTES
 	r.POST("/ping", func(c *gin.Context) {
