@@ -1,24 +1,41 @@
 <script>
     import FileUpload from './FileUpload.svelte';
     import DeleteConfirmation from './DeleteConfirmation.svelte';
-    import { untrack } from 'svelte';
+    import { tick, untrack } from 'svelte';
+    import { getTheme } from './state.svelte';
+    import { onMount } from 'svelte';
 
     let { lastKeyPressed , keyPressedCounter} = $props();
 
     let deleteModalActive = $state('');
-    let fileIndex = $state(0);
     let fileToDelete = $state('');
-    let files = $state([
-        "file1.txt",
-        "banana.txt",
-        "receipts.png",
-        "video.mp4",
-        "myfile.wav",
-        "anotherone.png",
-        "anotherone(1).png",
-        "wacky.pdf",
-        "file.txt",
-    ])
+    let files = $state('');
+    let fileIndex = $state(0);
+    //   let files = $state([
+    //       "file1.txt",
+    //       "banana.txt",
+    //       "receipts.png",
+    //       "video.mp4",
+    //       "myfile.wav",
+    //       "anotherone.png",
+    //       "anotherone(1).png",
+    //       "wacky.pdf",
+    //       "file.txt",
+    //   ])
+
+    onMount( async () => {
+        //let response = await fetch('http://localhost:8080/files');
+        //let message = await response.json();
+        await getFiles();
+        await tick();
+        fileIndex = 0;
+    })
+
+    async function getFiles(path="") {
+        let response = await fetch(`http://localhost:8080/files${path}`);
+        let message = await response.json();
+        files = message.files;
+    }
 
     $effect(() => {
         if (deleteModalActive === 'is-active') {
@@ -27,6 +44,12 @@
         if (keyPressedCounter) {
             untrack(() => handleKey());
         }
+        setTimeout(() => {
+            let selected = document.querySelector(`.index-${fileIndex}`);
+            if (selected) {
+                selected.scrollIntoView({ block: "center" });
+            }
+        })
         // so that itll update everytime even if key is the same
     })
 
@@ -44,12 +67,18 @@
             case "ArrowUp":
                 increaseIndex();
                 break;
-            case "d":
+            case "g":
+                fileIndex = 0;
+                break;
+            case "G":
+                fileIndex = files.length - 1;
+                break;
+            case "x":
                 fileToDelete = files[fileIndex];
                 deleteModalActive = 'is-active';
-                deleteFile(files[fileIndex]);
+                lastKeyPressed = '';
                 break;
-            case "Enter":
+            case "d":
                 downloadFile(files[fileIndex]);
                 break;
             case "u":
@@ -57,10 +86,15 @@
                 let fileInput = document.getElementById("file-input");
                 fileInput.click();
                 break;
+            case "U":
+                let uploadButton = document.getElementById("file-upload-button");
+                uploadButton.click();
+                break;
             case "?":
                 console.log("Opening Help Menu");
                 break;
         }
+        adjustIndex();
     }
 
     function decreaseIndex() {
@@ -69,9 +103,22 @@
     function increaseIndex() {
         fileIndex = Math.max(0, fileIndex - 1);
     }
+    function adjustIndex() {
+        if (fileIndex < 0) {
+            fileIndex = 0;
+        }
+        if (fileIndex > files.length - 1) {
+            fileIndex = files.length -1;
+        }
+    }
 
     function downloadFile(filename) {
-        console.log(`Downloading ${filename}`);
+        const tempLink = document.createElement("a");
+        tempLink.href = `http://localhost:8080/files/${filename}`;
+        tempLink.download = filename;
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        document.body.removeChild(tempLink);
     }
     function deleteFile(filename) {
         console.log(`Deleting ${filename}`);
@@ -79,12 +126,14 @@
 
 </script>
 
-    <DeleteConfirmation bind:deleteModalActive { files } { fileToDelete} { lastKeyPressed } />
-
-    <FileUpload></FileUpload>
+    <DeleteConfirmation bind:deleteModalActive { getFiles } { files } { fileToDelete} { lastKeyPressed } />
+    <FileUpload { getFiles }></FileUpload>
+    <br>
 
     {#each files as file, i }
-        <div class="box is-flex is-align-items-center is-justify-content-space-between file-box index-{i} {fileIndex === i ? 'has-background-link': ''}"> <b class="has-text-white">{file}</b>
+        <div class="box is-flex is-align-items-center is-justify-content-space-between file-box index-{i} {fileIndex === i ? getTheme() === 'light' ? 'has-background-light-blue': 'has-background-link': ''}"> 
+            <p class=" {getTheme() === "light" ? 'has-text-dark': 'has-text-light'}"><b><a href="{"http://localhost:8080/files/" + file }" download>{ file }</a></b></p>
+            <!-- consider making each box its own FileControl.svelte comoponent -->
             <div class="buttons">
                 <button onclick={() => {
                     downloadFile(file);
@@ -96,7 +145,8 @@
                     </span>
                 </button>
                 <button onclick={() => {
-                    deleteFile(file);
+                    fileToDelete = file;
+                    deleteModalActive = 'is-active';
                     document.activeElement.blur();
                 }} 
                 class="button is-danger" aria-label="Delete">
@@ -114,5 +164,12 @@
     .file-box {
         width: 50%;
         margin-left: 25%;
+    }
+    .has-background-light-blue {
+        background-color: #ADEAFF;
+    }
+    a {
+        color: inherit;
+        text-decoration: inherit;
     }
 </style>

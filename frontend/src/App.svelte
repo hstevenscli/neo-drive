@@ -3,7 +3,7 @@
     import Counter from './lib/Counter.svelte';
     import Login from './lib/Login.svelte';
     import FileList from './lib/FileList.svelte';
-    import NeoDriveLogo from './assets/NeoDriveLogo.png';
+    import Navbar from './lib/Navbar.svelte';
 
     let loggedIn = false;
     let lastKeyPressed = '';
@@ -23,14 +23,12 @@
 
 </script>
 
+<Navbar />
 
 {#if !loggedIn}
     <Login  bind:loggedIn />
-{:else}
-    <figure class="image is-64x64">
-        <img src={NeoDriveLogo} alt="NeoDrive Logo"/>
-    </figure>
 
+{:else}
     <Counter />
     <FileList {lastKeyPressed } {keyPressedCounter}/>
 {/if}

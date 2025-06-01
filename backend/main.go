@@ -8,9 +8,6 @@ import (
 
 )
 
-type Password struct {
-	Password string `json:"password"`
-}
 
 func main() {
 	r := gin.Default()
@@ -25,7 +22,11 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
 
+	// GET ROUTES
+	r.GET("/files", getFiles)
+	r.GET("files/:filename", getFileByName)
 
+	// POST ROUTES
 	r.POST("/ping", func(c *gin.Context) {
 		var pw Password
 		if err := c.BindJSON(&pw); err != nil {
@@ -36,6 +37,10 @@ func main() {
 		c.JSON(200, gin.H{"status": "got this password:" + pw.Password})
 	})
 	r.POST("/login", postLogin)
+	r.POST("/upload", handleFileUpload)
+
+	// DELETE ROUTES
+	r.DELETE("files/:filename", deleteFileByName)
 
 	r.Run("localhost:8080")
 }
