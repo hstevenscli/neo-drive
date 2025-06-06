@@ -30,7 +30,6 @@
     <Login  bind:loggedIn />
 
 {:else}
-    <Counter />
     <FileList {keyPressedCounter}/>
 {/if}
 

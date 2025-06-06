@@ -1,10 +1,13 @@
 <script>
     import FileUpload from './FileUpload.svelte';
     import DeleteConfirmation from './DeleteConfirmation.svelte';
+    import FilePreview from './FilePreview.svelte';
     import { tick, untrack } from 'svelte';
     import { setLKP, getLKP, getTheme, setTheme } from './state.svelte';
     import { onMount } from 'svelte';
     import { toggleTheme } from './state.svelte';
+    import { fade } from 'svelte/transition';
+    import HelpMenu from './HelpMenu.svelte';
 
     let { keyPressedCounter} = $props();
 
@@ -12,6 +15,9 @@
     let fileToDelete = $state('');
     let files = $state('');
     let fileIndex = $state(0);
+    let previewFileType = $state('');
+    let previewFile = $state();
+    let showHelpModal = $state(false);
     //   let files = $state([
     //       "file1.txt",
     //       "banana.txt",
@@ -40,6 +46,9 @@
 
     $effect(() => {
         if (deleteModalActive === 'is-active') {
+            return
+        }
+        if (previewFileType !== '') {
             return
         }
         if (keyPressedCounter) {
@@ -92,11 +101,13 @@
                 break;
             case "?":
                 console.log("Opening Help Menu");
+                showHelpModal = !showHelpModal;
                 break;
             case "t":
                 toggleTheme();
                 break;
             case "v":
+                setLKP('p');
                 readFile(files[fileIndex]);
                 break;
         }
@@ -130,16 +141,68 @@
         console.log(`Deleting ${filename}`);
     }
 
+
     async function readFile(filename) {
         let response = await fetch("http://localhost:8080/view/" + filename);
-        let message = await response.json();
-        console.log(message);
+        let contentType = response.headers.get("Content-Type");
+        console.log("Type:", contentType);
+
+        switch (contentType) {
+            case "application/pdf":
+                console.log("pdf");
+                let pdfblob = await response.blob();
+                previewFile = URL.createObjectURL(pdfblob);
+                previewFileType = "pdf";
+                break;
+            case "image/jpeg":
+                console.log("jpg");
+                let jpgblob = await response.blob();
+                previewFile = URL.createObjectURL(jpgblob);
+                previewFileType = "jpg";
+                break;
+            case "text/html; charset=utf-8":
+                console.log("html");
+                let htmltext = await response.text();
+                previewFile = htmltext;
+                previewFileType = "html";
+                break;
+            case "text/plain; charset=utf-8":
+                console.log("plain text");
+                let plaintext = await response.text();
+                console.log(plaintext);
+                previewFile = plaintext;
+                previewFileType = "txt";
+                
+                break;
+            case "image/png":
+                console.log("png");
+                let pngblob = await response.blob();
+                previewFile = URL.createObjectURL(pngblob);
+                previewFileType = "png";
+                break;
+            case "text/markdown; charset=utf-8":
+                console.log("md");
+                console.log("plain text");
+                let mdtext = await response.text();
+                previewFile = mdtext;
+                previewFileType = "md";
+                break;
+
+        }
     }
 </script>
 
+    {#if showHelpModal}
+        <HelpMenu bind:showHelpModal></HelpMenu>
+    {/if}
     <DeleteConfirmation bind:deleteModalActive { getFiles } { files } { fileToDelete} />
     <FileUpload { getFiles }></FileUpload>
     <br>
+
+    <p>{previewFileType}</p>
+    {#if previewFileType !== ''}
+        <FilePreview {previewFile} bind:previewFileType />
+    {/if}
 
     {#each files as file, i }
         <div class="box is-flex is-align-items-center is-justify-content-space-between file-box index-{i} {fileIndex === i ? getTheme() === 'light' ? 'has-background-light-blue': 'has-background-link': ''}"> 

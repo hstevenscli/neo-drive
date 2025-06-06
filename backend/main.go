@@ -11,6 +11,7 @@ import (
 
 func main() {
 	r := gin.Default()
+	r.Static("/assets", "../frontend/dist/assets/")
 
 	// Configure CORS options
     r.Use(cors.New(cors.Config{
@@ -23,6 +24,9 @@ func main() {
     }))
 
 	// GET ROUTES
+	r.GET("/", func(c *gin.Context) {
+		c.File("../frontend/dist/index.html")
+	})
 	r.GET("/files", getFiles)
 	r.GET("/files/:filename", getFileByName)
 	r.GET("/view/:filename", viewFile)

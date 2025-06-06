@@ -1,13 +1,14 @@
 package main
 
-
-
 import (
-	"github.com/gin-gonic/gin"
+	"mime"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"log"
+	"path/filepath"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Password struct {
@@ -22,23 +23,29 @@ type fileObj struct {
 	Files []string `json:"files"`
 }
 
+type dirEntry struct {
+	Name string
+	IsDir bool
+}
+
 var validPasswords = map[string]bool{
 	"monke": true,
 }
 
 var viewableFileTypes = map[string]bool {
-	"txt": true,
-	"html": true,
-	"md": true,
-	"cpp": true,
-	"py": true,
-	"cxx": true,
-	"c": true,
-	"h": true,
-	"csv": true,
-	"png": false,
-	"jpg": false,
-	"jpeg": false,
+	".txt": true,
+	".html": true,
+	".md": true,
+	".cpp": true,
+	".py": true,
+	".cxx": true,
+	".c": true,
+	".h": true,
+	".csv": true,
+	".png": true,
+	".jpg": true,
+	".jpeg": true,
+	".pdf": true,
 }
 
 func postLogin(c *gin.Context) {
@@ -78,7 +85,7 @@ func handleFileUpload(c *gin.Context) {
 
 func getFiles(c *gin.Context) {
 	files, err := os.ReadDir("./uploads/")
-	var rfiles []string
+	var rfiles []dirEntry
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,14 +108,29 @@ func getFileByName(c *gin.Context) {
 
 func viewFile(c *gin.Context) {
 	filename := c.Param("filename")
+
+	// verify valid viewable file
+	ext := filepath.Ext(filename)
+	fmt.Println("EXT:", ext)
+	if !viewableFileTypes[ext] {
+		c.JSON(415, gin.H{"error": "Unsupported file type for preview"})
+		return
+	}
+	// if viewable get the file data and send it
 	data, err := os.ReadFile("./uploads/" + filename)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "File Not Found"})
 		return
 	}
-	os.Stdout.Write(data)
-	s := string(data)
-	c.JSON(200, s)
+
+	mimeType := mime.TypeByExtension(ext)
+	if mimeType == "" {
+		mimeType = http.DetectContentType(data)
+	}
+
+	c.Header("Content-Type", mimeType)
+	c.Writer.WriteHeader(http.StatusOK)
+	c.Writer.Write(data)
 }
 
 func deleteFileByName(c *gin.Context) {
