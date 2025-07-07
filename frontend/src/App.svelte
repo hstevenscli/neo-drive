@@ -24,7 +24,7 @@
 
 </script>
 
-<Navbar />
+<Navbar { loggedIn } />
 
 {#if !loggedIn}
     <Login  bind:loggedIn />
@@ -34,7 +34,6 @@
 {/if}
 
 
-<p>logged In {loggedIn}</p>
 
 <style>
     .cool {

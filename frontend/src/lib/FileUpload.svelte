@@ -1,7 +1,7 @@
 <script>
-    let { getFiles } = $props();
+    let { getDirectory } = $props();
 
-    let filename = $state('');
+    let filename = $state('No File Selected');
 
     function handleFileChange(event) {
         const files = event.target.files;
@@ -12,7 +12,7 @@
                 filename = files[0].name + " + ...";
             }
         } else {
-            filename = '';
+            filename = 'No File Selected';
         }
     }
 
@@ -37,7 +37,8 @@
 
         let message = await response.json();
         console.log("Server Response", message);
-        getFiles();
+        getDirectory();
+        filename = 'No File Selected'
     }
 
 </script>
@@ -60,5 +61,7 @@
 
 
 <style>
-
+    .file {
+        margin-top: 2rem;
+    }
 </style>

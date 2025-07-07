@@ -3,21 +3,25 @@
     import DeleteConfirmation from './DeleteConfirmation.svelte';
     import FilePreview from './FilePreview.svelte';
     import { tick, untrack } from 'svelte';
-    import { setLKP, getLKP, getTheme, setTheme } from './state.svelte';
+    import { setLKP, getLKP, getTheme, setTheme, toggleHelpModal, getShowHelpModal } from './state.svelte';
     import { onMount } from 'svelte';
     import { toggleTheme } from './state.svelte';
     import { fade } from 'svelte/transition';
     import HelpMenu from './HelpMenu.svelte';
+    import PathView from './PathView.svelte';
 
     let { keyPressedCounter} = $props();
 
     let deleteModalActive = $state('');
     let fileToDelete = $state('');
-    let files = $state('');
+    let files = $state([]);
     let fileIndex = $state(0);
     let previewFileType = $state('');
     let previewFile = $state();
-    let showHelpModal = $state(false);
+    let previewFileName = $state();
+    let errorIndex = $state(-1)
+    let path = $state([])
+    let displayPath = $state([])
     //   let files = $state([
     //       "file1.txt",
     //       "banana.txt",
@@ -33,15 +37,30 @@
     onMount( async () => {
         //let response = await fetch('http://localhost:8080/files');
         //let message = await response.json();
-        await getFiles();
+        await getDirectory();
         await tick();
         fileIndex = 0;
     })
 
-    async function getFiles(path="") {
-        let response = await fetch(`http://localhost:8080/files${path}`);
+    function flushPath() {
+        path = [];
+        displayPath = [];
+        getDirectory();
+    }
+
+    async function getDirectory(path="") {
+        let url = `http://localhost:8080/dir${path}`
+        console.log(url);
+        let response = await fetch(url);
         let message = await response.json();
-        files = message.files;
+        console.log(message);
+        files = message;
+        files.sort((a, b) => {
+            if (a.IsDir && !b.IsDir) return -1;
+            if (!a.IsDir && b.IsDir) return 1;
+            return 0;
+        });
+        console.log(files);
     }
 
     $effect(() => {
@@ -65,6 +84,26 @@
 
     function handleKey() {
         switch (getLKP()) {
+            case "Enter":
+                if (files[fileIndex].IsDir) {
+                    // If dir, we need to:
+                    // Add the directory name to the path
+                    // Make a request for that path/dir
+                    // make an actual apth and a display path so that you can do this better
+                    path.push("/" + files[fileIndex].Name);
+                    let p = path.join("");
+                    displayPath.push(files[fileIndex].Name)
+                    getDirectory(p)
+                }
+                break;
+            case "-":
+                // Go up  asingle directory by popping 1 elt from path
+                // get directory using path
+                path.pop();
+                displayPath.pop();
+                let p = path.join("/");
+                getDirectory(p)
+                break;
             case "j":
                 decreaseIndex();
                 break;
@@ -84,11 +123,14 @@
                 fileIndex = files.length - 1;
                 break;
             case "x":
-                fileToDelete = files[fileIndex];
+                fileToDelete = files[fileIndex].Name;
                 deleteModalActive = 'is-active';
                 break;
             case "d":
-                downloadFile(files[fileIndex]);
+                if (!files[fileIndex].IsDir) {
+                    let p2 = path.join("")
+                    downloadFile(p2 + "/" + files[fileIndex].Name);
+                }
                 break;
             case "u":
                 // Gets the file upload form from FileUpload.svelte
@@ -101,14 +143,20 @@
                 break;
             case "?":
                 console.log("Opening Help Menu");
-                showHelpModal = !showHelpModal;
+                toggleHelpModal();
                 break;
             case "t":
                 toggleTheme();
                 break;
             case "v":
                 setLKP('p');
-                readFile(files[fileIndex]);
+                let p1 = path.join("")
+                console.log(p1)
+                readFile(p1 + "/" + files[fileIndex].Name);
+                break;
+            case ":":
+                console.log("Command mode");
+                mkdir();
                 break;
         }
         adjustIndex();
@@ -129,6 +177,7 @@
         }
     }
 
+
     function downloadFile(filename) {
         const tempLink = document.createElement("a");
         tempLink.href = `http://localhost:8080/files/${filename}`;
@@ -143,7 +192,7 @@
 
 
     async function readFile(filename) {
-        let response = await fetch("http://localhost:8080/view/" + filename);
+        let response = await fetch("http://localhost:8080/view" + filename);
         let contentType = response.headers.get("Content-Type");
         console.log("Type:", contentType);
 
@@ -187,30 +236,77 @@
                 previewFile = mdtext;
                 previewFileType = "md";
                 break;
-
+            default:
+                if (contentType.slice(0,4) === "text") {
+                    let othertext = await response.text();
+                    previewFile = othertext;
+                    previewFileType = "text"
+                } else {
+                    console.log("some kind of data");
+                }
         }
+        previewFileName = filename;
+
+        if(response.status === 415) {
+            setTimeout(() => {
+                errorIndex = -1;
+            }, 2000)
+            errorIndex = fileIndex;
+        }
+
+
+
     }
 </script>
 
-    {#if showHelpModal}
-        <HelpMenu bind:showHelpModal></HelpMenu>
+    {#if getShowHelpModal()}
+        <HelpMenu ></HelpMenu>
     {/if}
-    <DeleteConfirmation bind:deleteModalActive { getFiles } { files } { fileToDelete} />
-    <FileUpload { getFiles }></FileUpload>
+
+    <DeleteConfirmation bind:deleteModalActive { path } { getDirectory } { files } { fileToDelete} { adjustIndex } />
+    <FileUpload { getDirectory }></FileUpload>
     <br>
+
+
+    {#if previewFileType === ''}
+        <PathView { displayPath } { flushPath }></PathView>
+    {/if}
+
 
     <p>{previewFileType}</p>
     {#if previewFileType !== ''}
-        <FilePreview {previewFile} bind:previewFileType />
+        <FilePreview {previewFile} { previewFileName } bind:previewFileType />
     {/if}
 
     {#each files as file, i }
         <div class="box is-flex is-align-items-center is-justify-content-space-between file-box index-{i} {fileIndex === i ? getTheme() === 'light' ? 'has-background-light-blue': 'has-background-link': ''}"> 
-            <p class=" {getTheme() === "light" ? 'has-text-dark': 'has-text-light'}"><b><a href="{"http://localhost:8080/files/" + file }" download>{ file }</a></b></p>
+            <p class=" {getTheme() === "light" ? 'has-text-dark': 'has-text-light'}">
+                {#if file.IsDir}
+                    <span class="icon">
+                        <i class="fa-solid fa-folder"></i>
+                    </span>
+                {/if}
+                <b><a href="{"http://localhost:8080/files/" + file.Name }" download>{ file.Name }</a></b></p>
+            {#if errorIndex === i}
+                <p class="help is-danger error-msg-{i} { getTheme() === 'light' ? 'has-background-white' : 'has-background-black' }"><b>Unsupported Media Type</b></p>
+            {/if}
             <!-- consider making each box its own FileControl.svelte comoponent -->
             <div class="buttons">
+
+            {#if !file.IsDir}
                 <button onclick={() => {
-                    downloadFile(file);
+                    setLKP('p');
+                    let p1 = path.join("");
+                    console.log(p1);
+                    readFile(p1 + "/" + file.Name);
+                }}
+                class="button" aria-label="View">
+                    <span class="icon">
+                        <i class="fa-solid fa-eye"></i>
+                    </span>
+                </button>
+                <button onclick={() => {
+                    downloadFile(file.Name);
                     document.activeElement.blur();
                     }}
                 class="button" aria-label="Download">
@@ -218,15 +314,17 @@
                         <i class="fa-solid fa-download"></i>
                     </span>
                 </button>
+            {/if}
+
                 <button onclick={() => {
                     setLKP('p');
-                    fileToDelete = file;
+                    fileToDelete = file.Name;
                     deleteModalActive = 'is-active';
                     document.activeElement.blur();
                 }} 
                 class="button is-danger" aria-label="Delete">
                     <span class="icon has-text-white">
-                        <i class="fa-solid fa-x"></i>
+                        <i class="fa-solid fa-trash-can"></i>
                     </span>
                 </button>
             </div>
@@ -246,5 +344,14 @@
     a {
         color: inherit;
         text-decoration: inherit;
+    }
+    .help {
+        color: red;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 5px;
+    }
+    .fa-folder {
+        color: #00c5d1;
     }
 </style>

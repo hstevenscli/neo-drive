@@ -11,7 +11,6 @@ import (
 
 func main() {
 	r := gin.Default()
-	r.Static("/assets", "../frontend/dist/assets/")
 
 	// Configure CORS options
     r.Use(cors.New(cors.Config{
@@ -23,13 +22,25 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
 
+	r.Static("/assets", "../frontend/dist/assets/")
 	// GET ROUTES
 	r.GET("/", func(c *gin.Context) {
 		c.File("../frontend/dist/index.html")
 	})
-	r.GET("/files", getFiles)
-	r.GET("/files/:filename", getFileByName)
-	r.GET("/view/:filename", viewFile)
+	r.GET("/dir", func(c *gin.Context) {
+		fmt.Println("HERE")
+		readDirectory(c, "")
+	})
+	r.GET("/dir/*path", func(c *gin.Context) {
+		fmt.Println("path route")
+		path := c.Param("path")
+		fmt.Println("PATH:", path)
+		readDirectory(c, path)
+	})
+
+
+	r.GET("/files/*filename", getFileByName)
+	r.GET("/view/*filename", viewFile)
 
 	// POST ROUTES
 	r.POST("/ping", func(c *gin.Context) {
@@ -45,7 +56,7 @@ func main() {
 	r.POST("/upload", handleFileUpload)
 
 	// DELETE ROUTES
-	r.DELETE("files/:filename", deleteFileByName)
+	r.DELETE("files/*filename", deleteFileByName)
 
 	r.Run("localhost:8080")
 }

@@ -1,7 +1,16 @@
 let theme = $state(document.documentElement.getAttribute('data-theme'));
 let lastKeyPressed = $state();
+let showHelpModal = $state(false);
 export let keyPressedCounter = 0;
 
+
+export function toggleHelpModal() {
+    showHelpModal = !showHelpModal;
+}
+
+export function getShowHelpModal() {
+    return showHelpModal;
+}
 
 export function getLKP() {
     return lastKeyPressed;

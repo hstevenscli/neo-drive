@@ -1,6 +1,6 @@
 <script>
     import { onDestroy } from "svelte";
-    let { previewFile, previewFileType = $bindable() } = $props();
+    let { previewFile, previewFileType = $bindable(), previewFileName } = $props();
     import { setLKP, getLKP } from "./state.svelte";
     let active = $state('is-active');
     let innerWidth = window.innerWidth;
@@ -66,6 +66,7 @@ and one for text files
 <div class="modal {active}">
     <div onclick={() => {active = ''; previewFileType = '';}} class="modal-background"></div>
     <div class="modal-content { previewFileType === "png" || previewFileType === "jpg" ? 'hide-scroll' : '' }">
+        <p class="has-text-primary"><b>{ previewFileName }</b></p>
         <div class="box">
             {#if previewFileType === 'pdf'}
                 {@render pdfmodal()}

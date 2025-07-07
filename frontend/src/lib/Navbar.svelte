@@ -1,6 +1,8 @@
 <script>
     import NeoDriveLogo from '../assets/NeoDriveLogo.png';
-    import { getTheme, setTheme } from './state.svelte';
+    import { getTheme, setTheme, toggleHelpModal } from './state.svelte';
+
+    let { loggedIn } = $props()
 
     function toggleTheme() {
         if (getTheme() === 'dark') {
@@ -40,6 +42,7 @@
       <div class="navbar-item">
         <div class="buttons">
 
+
             <button class="button" onclick={ toggleTheme }>
                 <span class="icon">
                 {#if getTheme() === "dark"}
@@ -50,6 +53,14 @@
                 </span>
             </button>
 
+            {#if loggedIn}
+            <button class="button" onclick={ toggleHelpModal }>
+                <span class="icon">
+                    <i class="fa-solid fa-question"></i>
+                </span>
+            </button>
+            {/if}
+
         </div>
       </div>
     </div>
@@ -59,5 +70,4 @@
 
 
 <style>
-
 </style>

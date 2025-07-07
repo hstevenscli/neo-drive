@@ -1,6 +1,8 @@
 <script>
+    import {getLKP, setLKP} from "./state.svelte";
+
     let { loggedIn = $bindable() } = $props();
-    let password = $state("");
+    let password = $state("monke");
     let showNotification = $state(false);
     let message = $state({
         1: "" ,
@@ -9,6 +11,7 @@
     });
 
     async function handleLogin() {
+        console.log("Last key pressed", getLKP());
         console.log("logged in with password:", password);
         let body = JSON.stringify({ password: password });
         console.log(body);
@@ -26,6 +29,7 @@
             showNotification = true;
         }
         password = '';
+        console.log("Last key pressed", getLKP());
     }
     let i = 0;
     function addLetter() {
@@ -62,7 +66,10 @@
             <label class="label">Password {#if showNotification }<span class="is-size-7 has-text-danger">INVALID PASSWORD</span>{/if}</label>
             <div class="control">
                 <input onkeydown={(event) => {
-                    if (event.key == "Enter") {
+                    if (event.key === "Enter") {
+                        event.stopPropagation();
+                        console.log("setting lkp to blank");
+                        setLKP('');
                         handleLogin();
                     }
                 }}

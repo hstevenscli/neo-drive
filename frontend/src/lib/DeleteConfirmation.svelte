@@ -1,6 +1,6 @@
 <script>
     import { setLKP, getLKP } from "./state.svelte";
-    let { deleteModalActive = $bindable(''), files = $bindable(), fileToDelete, getFiles } = $props();
+    let { path, deleteModalActive = $bindable(''), files = $bindable(), fileToDelete, getDirectory, adjustIndex } = $props();
 
     $effect(() => {
         if (deleteModalActive === 'is-active') {
@@ -10,7 +10,9 @@
     })
 
     async function deleteFile(filename) {
-        let response = await fetch("http://localhost:8080/files/" + filename, {
+        let url = "http://localhost:8080/files" + path.join("") + "/" + filename;
+        console.log("D URL:", url);
+        let response = await fetch(url, {
             method: "DELETE",
         })
         let message = await response.json();
@@ -25,7 +27,8 @@
         }
         console.log("Deleting file");
         await deleteFile(fileToDelete);
-        getFiles();
+        getDirectory(path.join(""));
+        adjustIndex();
     }
 
 

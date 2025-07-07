@@ -3,9 +3,9 @@ package main
 import (
 	"mime"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
+	"syscall"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -46,6 +46,7 @@ var viewableFileTypes = map[string]bool {
 	".jpg": true,
 	".jpeg": true,
 	".pdf": true,
+	".js": true,
 }
 
 func postLogin(c *gin.Context) {
@@ -83,21 +84,31 @@ func handleFileUpload(c *gin.Context) {
 }
 
 
-func getFiles(c *gin.Context) {
-	files, err := os.ReadDir("./uploads/")
-	var rfiles []dirEntry
+//TODO in progress changing filenames []string -> entries []dirEntry
+func readDirectory(c *gin.Context, path string) {
+	fmt.Println("Getting directory")
+	files, err := os.ReadDir("./uploads/" + path)
+	fmt.Println("files:", files)
+	var filenames []string
+	var entries []dirEntry
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err.Error())
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
 	}
 
 	for _, file := range files {
 		fmt.Println(file.Name())
-		rfiles = append(rfiles, file.Name())
+		de := dirEntry{
+			Name: file.Name(),
+			IsDir: file.IsDir(),
+		}
+		entries = append(entries, de)
+		filenames = append(filenames, file.Name())
 	}
-	fmt.Println(rfiles)
-
+	fmt.Println(filenames)
 	// files := fileObj{ []string{ "file1", "file2" } }
-	c.JSON(200, fileObj{ rfiles })
+	c.JSON(200, entries)
 }
 
 func getFileByName(c *gin.Context) {
@@ -135,9 +146,20 @@ func viewFile(c *gin.Context) {
 
 func deleteFileByName(c *gin.Context) {
 	filename := c.Param("filename")
-	err := os.Remove("./uploads/"+filename)
+	err := os.Remove("./uploads/" + filename)
 	if err != nil {
+		fmt.Println(err)
+		if pathErr, ok := err.(*os.PathError); ok {
+			fmt.Println(pathErr.Err)
+			if pathErr.Err == syscall.ENOTEMPTY {
+				fmt.Println("NOTEMPTRY")
+				c.JSON(400, gin.H{"error": "Directory not empty"})
+				return
+			}
+		}
 		c.JSON(400, gin.H{"error": "couldn't delete file"})
+		return
 	}
-	c.JSON(201, gin.H{"status": "Successfully deleted file: "+ filename})
+	c.JSON(200, gin.H{"status": "Successfully deleted file: "+ filename})
+	return
 }

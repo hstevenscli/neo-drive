@@ -1,0 +1,37 @@
+            {#if !file.IsDir}
+                <button onclick={() => {
+                    setLKP('p');
+                    let p1 = path.join("");
+                    console.log(p1);
+                    readFile(p1 + "/" + file.Name);
+                }}
+                class="button" aria-label="View">
+                    <span class="icon">
+                        <i class="fa-solid fa-eye"></i>
+                    </span>
+                </button>
+                <button onclick={() => {
+                    downloadFile(file.Name);
+                    document.activeElement.blur();
+                    }}
+                class="button" aria-label="Download">
+                    <span class="icon">
+                        <i class="fa-solid fa-download"></i>
+                    </span>
+                </button>
+            {/if}
+
+                <button onclick={() => {
+                    setLKP('p');
+                    fileToDelete = file.Name;
+                    deleteModalActive = 'is-active';
+                    document.activeElement.blur();
+                }} 
+                class="button is-danger" aria-label="Delete">
+                    <span class="icon has-text-white">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </span>
+                </button>
+            </div>
+        </div>
+    {/each}
