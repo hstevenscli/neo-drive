@@ -1,5 +1,5 @@
 <script>
-    let { getDirectory } = $props();
+    let { getDirectory, path } = $props();
 
     let filename = $state('No File Selected');
 
@@ -30,14 +30,16 @@
         }
 
 
-        let response = await fetch("http://localhost:8080/upload", {
+        if (path.length === 0) {
+            path = ["/"]
+        }
+        let response = await fetch("http://localhost:8080/upload" + path, {
             method: "POST",
             body: formData,
         });
-
         let message = await response.json();
         console.log("Server Response", message);
-        getDirectory();
+        getDirectory(path);
         filename = 'No File Selected'
     }
 

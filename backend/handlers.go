@@ -65,6 +65,7 @@ func postLogin(c *gin.Context) {
 
 
 func handleFileUpload(c *gin.Context) {
+	path := c.Param("path")
 	form, err := c.MultipartForm()
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid upload"})
@@ -74,13 +75,15 @@ func handleFileUpload(c *gin.Context) {
     files := form.File["files"] // must match the name in formData.append("files", ...)
     for _, file := range files {
         // Save each file or process as needed
-        err := c.SaveUploadedFile(file, "./uploads/" + file.Filename)
+        err := c.SaveUploadedFile(file, "./uploads/" + path + "/" + file.Filename)
+		fmt.Println("Path:", path)
+		fmt.Println("Filename:", file.Filename)
         if err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
             return
         }
     }
-    c.JSON(http.StatusOK, gin.H{"message": "Files uploaded successfully"})
+    c.JSON(201, gin.H{"message": "Files uploaded successfully"})
 }
 
 

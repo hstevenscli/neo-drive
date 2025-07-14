@@ -28,13 +28,10 @@ func main() {
 		c.File("../frontend/dist/index.html")
 	})
 	r.GET("/dir", func(c *gin.Context) {
-		fmt.Println("HERE")
 		readDirectory(c, "")
 	})
 	r.GET("/dir/*path", func(c *gin.Context) {
-		fmt.Println("path route")
 		path := c.Param("path")
-		fmt.Println("PATH:", path)
 		readDirectory(c, path)
 	})
 
@@ -53,7 +50,8 @@ func main() {
 		c.JSON(200, gin.H{"status": "got this password:" + pw.Password})
 	})
 	r.POST("/login", postLogin)
-	r.POST("/upload", handleFileUpload)
+	r.POST("/upload/*path", handleFileUpload)
+	r.POST("/dir/*path", handleNewDir)
 
 	// DELETE ROUTES
 	r.DELETE("files/*filename", deleteFileByName)

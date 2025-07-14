@@ -42,6 +42,7 @@
         fileIndex = 0;
     })
 
+    // 
     function flushPath() {
         path = [];
         displayPath = [];
@@ -162,6 +163,10 @@
         adjustIndex();
     }
 
+    function mkdir() {
+
+    }
+
     function decreaseIndex() {
         fileIndex = Math.min(files.length - 1, fileIndex + 1);
     }
@@ -264,11 +269,11 @@
     {/if}
 
     <DeleteConfirmation bind:deleteModalActive { path } { getDirectory } { files } { fileToDelete} { adjustIndex } />
-    <FileUpload { getDirectory }></FileUpload>
+    <FileUpload { getDirectory } { path }></FileUpload>
     <br>
 
 
-    {#if previewFileType === ''}
+    {#if previewFileType === '' && deleteModalActive != 'is-active'}
         <PathView { displayPath } { flushPath }></PathView>
     {/if}
 
@@ -279,14 +284,19 @@
     {/if}
 
     {#each files as file, i }
-        <div class="box is-flex is-align-items-center is-justify-content-space-between file-box index-{i} {fileIndex === i ? getTheme() === 'light' ? 'has-background-light-blue': 'has-background-link': ''}"> 
+        <div onclick={() => {
+            fileIndex = i;
+            setLKP("Enter");
+            handleKey();
+            console.log("HEY");
+            }} class="box is-flex is-align-items-center is-justify-content-space-between file-box index-{i} {fileIndex === i ? getTheme() === 'light' ? 'has-background-light-blue': 'has-background-link': ''}"> 
             <p class=" {getTheme() === "light" ? 'has-text-dark': 'has-text-light'}">
                 {#if file.IsDir}
                     <span class="icon">
                         <i class="fa-solid fa-folder"></i>
                     </span>
                 {/if}
-                <b><a href="{"http://localhost:8080/files/" + file.Name }" download>{ file.Name }</a></b></p>
+                <b><i>{ file.Name }</i></b></p>
             {#if errorIndex === i}
                 <p class="help is-danger error-msg-{i} { getTheme() === 'light' ? 'has-background-white' : 'has-background-black' }"><b>Unsupported Media Type</b></p>
             {/if}
