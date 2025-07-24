@@ -52,7 +52,7 @@ func main() {
 	})
 	r.POST("/login", postLogin)
 	r.POST("/upload/*path", handleFileUpload)
-	// r.POST("/dir/*path", handleNewDir)
+	r.POST("/dir/*path", postNewDir)
 
 	// DELETE ROUTES
 	r.DELETE("files/*filename", deleteFileByName)

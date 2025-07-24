@@ -120,6 +120,21 @@ func getFileByName(c *gin.Context) {
     c.File("./uploads/" + filename)
 }
 
+func postNewDir(c *gin.Context) {
+	path := c.Param("path")
+	err := os.Mkdir("./uploads/" + path, 0755)
+	if err != nil {
+		c.JSON(500, gin.H{
+			"status": "Error creating directory", 
+			"error": err.Error(),
+		})
+		fmt.Println(err.Error())
+		return
+	}
+	c.JSON(201, gin.H{"status": "Created directory"})
+	fmt.Println("MKDIR PATH", path)
+}
+
 func viewFile(c *gin.Context) {
 	filename := c.Param("filename")
 
