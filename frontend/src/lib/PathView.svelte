@@ -1,7 +1,7 @@
 <script>
     import {getTheme} from "./state.svelte";
 
-    let { displayPath = $bindable(), path = $bindable(), flushPath, getDirectory } = $props()
+    let { displayPath = $bindable(), path = $bindable(), flushPath, getDirectory, toggleCreateDirModalActive } = $props()
     console.log("PATH", displayPath)
 </script>
 
@@ -29,7 +29,7 @@
         </ul>
     </nav>
 
-    <button class="button">
+    <button onclick={toggleCreateDirModalActive} class="button">
         <span class="icon">
             <i class="fa-solid fa-folder-plus"></i>
         </span>

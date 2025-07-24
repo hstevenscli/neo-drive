@@ -6,6 +6,7 @@
     import PathView from './PathView.svelte';
     import { tick, untrack, onMount } from 'svelte';
     import { toggleTheme, setLKP, getLKP, getTheme, setTheme, toggleHelpModal, getShowHelpModal } from './state.svelte';
+    import CreateDir from './CreateDir.svelte';
 
     let { keyPressedCounter} = $props();
     let deleteModalActive = $state('');
@@ -16,12 +17,17 @@
     let previewFile = $state();
     let previewFileName = $state();
     let errorIndex = $state(-1)
+    let createDirModalActive = $state(false);
 
     // Path  and displayPath contain the same items, the only difference
     // being that each item in path starts with a / while displayPath elements
     // Don't have a / in them
     let path = $state([])
     let displayPath = $state([])
+
+    function toggleCreateDirModalActive() {
+        createDirModalActive = !createDirModalActive;
+    }
 
     onMount( async () => {
         //let response = await fetch('http://localhost:8080/files');
@@ -53,16 +59,35 @@
         console.log(files);
     }
 
+    function moveIndexHighlight() {
+        if (files.length === 1) {
+            fileIndex = 0;
+        }
+        if (fileIndex <= files.length-1) {
+            fileIndex = fileIndex
+        } else {
+            fileIndex = files.length -1;
+        }
+    }
+
     $effect(() => {
+        // If the delete modal is open don't do key presses at this level
         if (deleteModalActive === 'is-active') {
             return
         }
+        // If the create dir modal is open don't do key presses at this level
+        if (createDirModalActive) {
+            return
+        }
+        // If the file preview is open don't do key presses at this level
         if (previewFileType !== '') {
             return
         }
+        // prevent effect from activating itself and infinite looping
         if (keyPressedCounter) {
             untrack(() => handleKey());
         }
+        // keep highlighted file in center screen
         setTimeout(() => {
             let selected = document.querySelector(`.index-${fileIndex}`);
             if (selected) {
@@ -148,15 +173,27 @@
                 readFile(p1 + "/" + files[fileIndex].Name);
                 break;
             case ":":
+                await tick();
+                createDirModalActive = true;
                 console.log("Command mode");
-                mkdir();
                 break;
         }
         adjustIndex();
     }
 
-    function mkdir() {
-
+    async function mkdir(path) {
+        let url = "http://localhost:8080/dir/";
+        let response = await fetch(url + path, {
+            method: "POST"
+        })
+        let json = response.json();
+        console.log(json);
+        let p = this.path.join("");
+        await getDirectory(p);
+        await tick();
+        console.log("Index before:", fileIndex);
+        moveIndexHighlight();
+        console.log("Index after:", fileIndex);
     }
 
     function decreaseIndex() {
@@ -260,13 +297,16 @@
         <HelpMenu ></HelpMenu>
     {/if}
 
+    {#if createDirModalActive}
+        <CreateDir bind:createDirModalActive { path } { mkdir }></CreateDir>
+    {/if}
     <DeleteConfirmation bind:deleteModalActive { path } { getDirectory } { files } { fileToDelete} { adjustIndex } />
     <FileUpload { getDirectory } { path }></FileUpload>
     <br>
 
 
-    {#if previewFileType === '' && deleteModalActive != 'is-active'}
-        <PathView bind:displayPath bind:path { flushPath } { getDirectory }></PathView>
+    {#if previewFileType === '' && deleteModalActive != 'is-active' && !createDirModalActive}
+        <PathView bind:displayPath bind:path { flushPath } { getDirectory } { toggleCreateDirModalActive }></PathView>
     {/if}
 
 

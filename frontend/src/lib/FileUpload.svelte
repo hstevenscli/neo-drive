@@ -33,13 +33,14 @@
         if (path.length === 0) {
             path = ["/"]
         }
-        let response = await fetch("http://localhost:8080/upload" + path, {
+        let p = path.join("");
+        let response = await fetch("http://localhost:8080/upload" + p, {
             method: "POST",
             body: formData,
         });
         let message = await response.json();
         console.log("Server Response", message);
-        getDirectory(path);
+        getDirectory(p);
         filename = 'No File Selected'
     }
 

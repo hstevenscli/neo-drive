@@ -27,7 +27,7 @@
         }
         console.log("Deleting file");
         await deleteFile(fileToDelete);
-        getDirectory(path.join(""));
+        await getDirectory(path.join(""));
         adjustIndex();
     }
 
