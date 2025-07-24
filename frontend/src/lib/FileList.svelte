@@ -2,16 +2,12 @@
     import FileUpload from './FileUpload.svelte';
     import DeleteConfirmation from './DeleteConfirmation.svelte';
     import FilePreview from './FilePreview.svelte';
-    import { tick, untrack } from 'svelte';
-    import { setLKP, getLKP, getTheme, setTheme, toggleHelpModal, getShowHelpModal } from './state.svelte';
-    import { onMount } from 'svelte';
-    import { toggleTheme } from './state.svelte';
-    import { fade } from 'svelte/transition';
     import HelpMenu from './HelpMenu.svelte';
     import PathView from './PathView.svelte';
+    import { tick, untrack, onMount } from 'svelte';
+    import { toggleTheme, setLKP, getLKP, getTheme, setTheme, toggleHelpModal, getShowHelpModal } from './state.svelte';
 
     let { keyPressedCounter} = $props();
-
     let deleteModalActive = $state('');
     let fileToDelete = $state('');
     let files = $state([]);
@@ -20,19 +16,12 @@
     let previewFile = $state();
     let previewFileName = $state();
     let errorIndex = $state(-1)
+
+    // Path  and displayPath contain the same items, the only difference
+    // being that each item in path starts with a / while displayPath elements
+    // Don't have a / in them
     let path = $state([])
     let displayPath = $state([])
-    //   let files = $state([
-    //       "file1.txt",
-    //       "banana.txt",
-    //       "receipts.png",
-    //       "video.mp4",
-    //       "myfile.wav",
-    //       "anotherone.png",
-    //       "anotherone(1).png",
-    //       "wacky.pdf",
-    //       "file.txt",
-    //   ])
 
     onMount( async () => {
         //let response = await fetch('http://localhost:8080/files');
@@ -42,7 +31,7 @@
         fileIndex = 0;
     })
 
-    // 
+    // Helper function for resetting the paths and getting the root directory
     function flushPath() {
         path = [];
         displayPath = [];
@@ -83,7 +72,7 @@
         // so that itll update everytime even if key is the same
     })
 
-    function handleKey() {
+    async function handleKey() {
         switch (getLKP()) {
             case "Enter":
                 if (files[fileIndex].IsDir) {
@@ -93,8 +82,10 @@
                     // make an actual apth and a display path so that you can do this better
                     path.push("/" + files[fileIndex].Name);
                     let p = path.join("");
-                    displayPath.push(files[fileIndex].Name)
-                    getDirectory(p)
+                    displayPath.push(files[fileIndex].Name);
+                    await getDirectory(p);
+                    await tick();
+                    fileIndex = 0;
                 }
                 break;
             case "-":
@@ -103,7 +94,8 @@
                 path.pop();
                 displayPath.pop();
                 let p = path.join("/");
-                getDirectory(p)
+                console.log("Path", displayPath);
+                getDirectory(p);
                 break;
             case "j":
                 decreaseIndex();
@@ -274,7 +266,7 @@
 
 
     {#if previewFileType === '' && deleteModalActive != 'is-active'}
-        <PathView { displayPath } { flushPath }></PathView>
+        <PathView bind:displayPath bind:path { flushPath } { getDirectory }></PathView>
     {/if}
 
 

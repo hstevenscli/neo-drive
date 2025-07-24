@@ -1,7 +1,7 @@
 <script>
     import {getTheme} from "./state.svelte";
 
-    let { displayPath, flushPath } = $props()
+    let { displayPath = $bindable(), path = $bindable(), flushPath, getDirectory } = $props()
     console.log("PATH", displayPath)
 </script>
 
@@ -16,8 +16,15 @@
     <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul class="is-flex is-align-items-center">
             <li><a onclick={ flushPath }>Home</a></li>
-    {#each displayPath as pathNode}
-        <li><a href="#">{pathNode}</a></li>
+    {#each displayPath as pathNode, index}
+            <li><a onclick="{() => {
+                    let subarr = displayPath.slice(0, index + 1);
+                    let newpath = path.slice(0, index+1);
+                    path = newpath;
+                    let s = subarr.join("/");
+                    displayPath = subarr;
+                    getDirectory("/" + s);
+                }}" href="#">{pathNode}</a></li>
     {/each}
         </ul>
     </nav>

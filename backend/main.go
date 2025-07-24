@@ -39,6 +39,7 @@ func main() {
 	r.GET("/files/*filename", getFileByName)
 	r.GET("/view/*filename", viewFile)
 
+
 	// POST ROUTES
 	r.POST("/ping", func(c *gin.Context) {
 		var pw Password
@@ -51,7 +52,7 @@ func main() {
 	})
 	r.POST("/login", postLogin)
 	r.POST("/upload/*path", handleFileUpload)
-	r.POST("/dir/*path", handleNewDir)
+	// r.POST("/dir/*path", handleNewDir)
 
 	// DELETE ROUTES
 	r.DELETE("files/*filename", deleteFileByName)

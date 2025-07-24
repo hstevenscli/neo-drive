@@ -13,3 +13,13 @@ Tracking things i want to do in the future
     [ ] doc
     [ ] docx
     [ ] whatever scrivener uses
+[ ] Enable use of j,k,x,d while in file preview
+
+
+
+
+
+
+
+
+## 
