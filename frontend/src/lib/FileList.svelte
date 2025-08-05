@@ -7,6 +7,7 @@
     import { tick, untrack, onMount } from 'svelte';
     import { toggleTheme, setLKP, getLKP, getTheme, setTheme, toggleHelpModal, getShowHelpModal } from './state.svelte';
     import CreateDir from './CreateDir.svelte';
+    import FileEdit from './FileEdit.svelte';
 
     let { keyPressedCounter} = $props();
     let deleteModalActive = $state('');
@@ -18,6 +19,8 @@
     let previewFileName = $state();
     let errorIndex = $state(-1)
     let createDirModalActive = $state(false);
+    let fileEditModalActive = $state(false);
+    let fileToEdit = $state('');
 
     // Path  and displayPath contain the same items, the only difference
     // being that each item in path starts with a / while displayPath elements
@@ -25,6 +28,20 @@
     let path = $state([])
     let displayPath = $state([])
 
+    let activeModalsObj = $state({
+        fileEditModal: false,
+        createDirModal: false,
+    })
+
+    function genericOpenModal(targetModal) {
+        // toggle modal states
+        activeModalsObj[targetModal] = !activeModalsObj[targetModal];
+    }
+
+    function toggleFileEditModal(index) {
+        fileEditModalActive = !fileEditModalActive;
+        fileToEdit = files[index].Name;
+    }
     function toggleCreateDirModalActive() {
         createDirModalActive = !createDirModalActive;
     }
@@ -78,6 +95,10 @@
         // If the create dir modal is open don't do key presses at this level
         if (createDirModalActive) {
             return
+        }
+        // If editing filename don't do key presses at this level
+        if (fileEditModalActive) {
+            return 
         }
         // If the file preview is open don't do key presses at this level
         if (previewFileType !== '') {
@@ -196,6 +217,13 @@
         console.log("Index after:", fileIndex);
     }
 
+    async function editFileName(path, newName) {
+        // convert path into something usable
+        console.log("Path:", path)
+        console.log("NewName:", newName)
+        console.log("New Name");
+    }
+
     function decreaseIndex() {
         fileIndex = Math.min(files.length - 1, fileIndex + 1);
     }
@@ -297,15 +325,19 @@
         <HelpMenu ></HelpMenu>
     {/if}
 
-    {#if createDirModalActive}
+    {#if activeModalsObj.createDirModal}
         <CreateDir bind:createDirModalActive { path } { mkdir }></CreateDir>
     {/if}
+    {#if activeModalsObj.fileEditModal}
+        <FileEdit bind:activeModalsObj { fileToEdit } { editFileName } { path } ></FileEdit>
+    {/if}
+
     <DeleteConfirmation bind:deleteModalActive { path } { getDirectory } { files } { fileToDelete} { adjustIndex } />
     <FileUpload { getDirectory } { path }></FileUpload>
     <br>
 
 
-    {#if previewFileType === '' && deleteModalActive != 'is-active' && !createDirModalActive}
+    {#if previewFileType === '' && deleteModalActive != 'is-active' && !createDirModalActive && !activeModalsObj["fileEditModal"]}
         <PathView bind:displayPath bind:path { flushPath } { getDirectory } { toggleCreateDirModalActive }></PathView>
     {/if}
 
@@ -328,7 +360,11 @@
                         <i class="fa-solid fa-folder"></i>
                     </span>
                 {/if}
-                <b><i>{ file.Name }</i></b></p>
+                <b><i>{ file.Name }
+                        <span onclick={(event) => { event.stopPropagation(); genericOpenModal("fileEditModal"); fileToEdit = files[i].Name;}} class="icon has-text-grey pen">
+                            <i class="fa-solid fa-pen-nib"></i>
+                        </span>
+                </i></b></p>
             {#if errorIndex === i}
                 <p class="help is-danger error-msg-{i} { getTheme() === 'light' ? 'has-background-white' : 'has-background-black' }"><b>Unsupported Media Type</b></p>
             {/if}
@@ -395,5 +431,9 @@
     }
     .fa-folder {
         color: #00c5d1;
+    }
+
+    .pen {
+        cursor: pointer;
     }
 </style>

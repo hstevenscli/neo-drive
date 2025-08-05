@@ -15,11 +15,6 @@ Tracking things i want to do in the future
     [ ] whatever scrivener uses
 [ ] Enable use of j,k,x,d while in file preview
 
+## Current Goal
 
-
-
-
-
-
-
-## 
+> Allow the editing of the filename
