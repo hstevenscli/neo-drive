@@ -34,7 +34,7 @@
             path = ["/"]
         }
         let p = path.join("");
-        let response = await fetch("http://localhost:8080/upload" + p, {
+        let response = await fetch("/upload" + p, {
             method: "POST",
             body: formData,
         });

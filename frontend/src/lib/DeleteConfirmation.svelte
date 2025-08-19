@@ -10,7 +10,7 @@
     })
 
     async function deleteFile(filename) {
-        let url = "http://localhost:8080/files" + path.join("") + "/" + filename;
+        let url = "/files" + path.join("") + "/" + filename;
         console.log("D URL:", url);
         let response = await fetch(url, {
             method: "DELETE",

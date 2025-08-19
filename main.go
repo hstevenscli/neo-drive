@@ -5,11 +5,24 @@ import (
 	"github.com/gin-contrib/cors"
     "time"
 	"fmt"
+	"github.com/joho/godotenv"
+	"log"
+	"os"
 
 )
 
 
 func main() {
+    // load env variable
+    err := godotenv.Load()
+    if err != nil {
+        log.Fatal("Error loading .env file")
+    }
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	r := gin.Default()
 
 	// Configure CORS options
@@ -57,5 +70,5 @@ func main() {
 	// DELETE ROUTES
 	r.DELETE("files/*filename", deleteFileByName)
 
-	r.Run("localhost:8080")
+    r.Run("0.0.0.0:"+port)
 }

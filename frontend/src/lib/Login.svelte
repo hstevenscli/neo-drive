@@ -2,7 +2,7 @@
     import {getLKP, setLKP} from "./state.svelte";
 
     let { loggedIn = $bindable() } = $props();
-    let password = $state("monke");
+    let password = $state("");
     let showNotification = $state(false);
     let message = $state({
         1: "" ,
@@ -15,7 +15,7 @@
         console.log("logged in with password:", password);
         let body = JSON.stringify({ password: password });
         console.log(body);
-        let response = await fetch("http://localhost:8080/login", {
+        let response = await fetch("/login", {
             method: "POST",
             body: body,
         });

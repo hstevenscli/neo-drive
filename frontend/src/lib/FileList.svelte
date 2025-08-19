@@ -68,7 +68,7 @@
     }
 
     async function getDirectory(path="") {
-        let url = `http://localhost:8080/dir${path}`
+        let url = `/dir${path}`
         console.log(url);
         let response = await fetch(url);
         let message = await response.json();
@@ -205,7 +205,7 @@
     }
 
     async function mkdir(path) {
-        let url = "http://localhost:8080/dir/";
+        let url = "/dir/";
         let response = await fetch(url + path, {
             method: "POST"
         })
@@ -244,7 +244,7 @@
 
     function downloadFile(filename) {
         const tempLink = document.createElement("a");
-        tempLink.href = `http://localhost:8080/files/${filename}`;
+        tempLink.href = `/files/${filename}`;
         tempLink.download = filename;
         document.body.appendChild(tempLink);
         tempLink.click();
@@ -256,7 +256,7 @@
 
 
     async function readFile(filename) {
-        let response = await fetch("http://localhost:8080/view" + filename);
+        let response = await fetch("/view" + filename);
         let contentType = response.headers.get("Content-Type");
         console.log("Type:", contentType);
 

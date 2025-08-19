@@ -8,8 +8,6 @@ import (
 	"syscall"
 	"path/filepath"
 
-	"github.com/joho/godotenv"
-	"log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -52,12 +50,6 @@ var viewableFileTypes = map[string]bool {
 }
 
 func postLogin(c *gin.Context) {
-    // load env variable
-    err := godotenv.Load()
-    if err != nil {
-        log.Fatal("Error loading .env file")
-    }
-
 	var pw Password
 	if err := c.BindJSON(&pw); err != nil {
 		c.JSON(500, gin.H{"status": "Server error"})
