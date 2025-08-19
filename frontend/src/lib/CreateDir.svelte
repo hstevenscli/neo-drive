@@ -2,7 +2,7 @@
     import {onMount, tick} from "svelte";
     import {getLKP, setLKP} from "./state.svelte";
 
-    let { mkdir, path, createDirModalActive = $bindable() } = $props();
+    let { mkdir, path, activeModalsObj = $bindable() } = $props();
     let input = $state("");
     let inputEl;
     onMount(async () => {
@@ -12,10 +12,10 @@
     })
     function closeModal() {
         setLKP('P');
-        createDirModalActive = false;
+        activeModalsObj.createDirModal = false;
     }
     $effect(() => {
-        if (createDirModalActive) {
+        if (activeModalsObj.createDirModal) {
             handleKey();
         }
     })

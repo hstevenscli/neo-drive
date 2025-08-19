@@ -18,7 +18,6 @@
     let previewFile = $state();
     let previewFileName = $state();
     let errorIndex = $state(-1)
-    let createDirModalActive = $state(false);
     let fileEditModalActive = $state(false);
     let fileToEdit = $state('');
 
@@ -33,17 +32,24 @@
         createDirModal: false,
     })
 
+    // Returns true if any key is set to true in the activeModalsObj
+    function checkActiveModal() {
+        let keys = Object.keys(activeModalsObj);
+        for (let i = 0; i < keys.length; i++) {
+            if (activeModalsObj[keys[i]]) {
+                return true
+            }
+        }
+        return false
+    }
+
     function genericOpenModal(targetModal) {
         // toggle modal states
         activeModalsObj[targetModal] = !activeModalsObj[targetModal];
     }
 
-    function toggleFileEditModal(index) {
-        fileEditModalActive = !fileEditModalActive;
-        fileToEdit = files[index].Name;
-    }
     function toggleCreateDirModalActive() {
-        createDirModalActive = !createDirModalActive;
+        activeModalsObj.createDirModal = !activeModalsObj.createDirModal;
     }
 
     onMount( async () => {
@@ -93,12 +99,8 @@
             return
         }
         // If the create dir modal is open don't do key presses at this level
-        if (createDirModalActive) {
+        if (activeModalsObj.createDirModal || activeModalsObj.fileEditModal) {
             return
-        }
-        // If editing filename don't do key presses at this level
-        if (fileEditModalActive) {
-            return 
         }
         // If the file preview is open don't do key presses at this level
         if (previewFileType !== '') {
@@ -195,7 +197,7 @@
                 break;
             case ":":
                 await tick();
-                createDirModalActive = true;
+                activeModalsObj.createDirModal = true;
                 console.log("Command mode");
                 break;
         }
@@ -326,7 +328,7 @@
     {/if}
 
     {#if activeModalsObj.createDirModal}
-        <CreateDir bind:createDirModalActive { path } { mkdir }></CreateDir>
+        <CreateDir bind:activeModalsObj { path } { mkdir }></CreateDir>
     {/if}
     {#if activeModalsObj.fileEditModal}
         <FileEdit bind:activeModalsObj { fileToEdit } { editFileName } { path } ></FileEdit>
@@ -337,7 +339,7 @@
     <br>
 
 
-    {#if previewFileType === '' && deleteModalActive != 'is-active' && !createDirModalActive && !activeModalsObj["fileEditModal"]}
+    {#if previewFileType === '' && deleteModalActive != 'is-active' && !checkActiveModal()}
         <PathView bind:displayPath bind:path { flushPath } { getDirectory } { toggleCreateDirModalActive }></PathView>
     {/if}
 
