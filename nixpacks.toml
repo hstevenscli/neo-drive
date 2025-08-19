@@ -1,0 +1,16 @@
+providers = ['...', 'go']
+# nixpacks.toml
+[phases.setup]
+nixPkgs = [
+    '...',
+    'nodejs_20',
+    'go',
+]
+
+[phases.build]
+cmds = [
+    './build.sh'
+]
+
+[start]
+cmd = './app'
