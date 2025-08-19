@@ -22,10 +22,10 @@ func main() {
         MaxAge: 12 * time.Hour,
     }))
 
-	r.Static("/assets", "../frontend/dist/assets/")
+	r.Static("/assets", "./frontend/dist/assets/")
 	// GET ROUTES
 	r.GET("/", func(c *gin.Context) {
-		c.File("../frontend/dist/index.html")
+		c.File("./frontend/dist/index.html")
 	})
 	r.GET("/dir", func(c *gin.Context) {
 		readDirectory(c, "")
