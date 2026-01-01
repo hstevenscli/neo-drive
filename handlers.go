@@ -3,6 +3,7 @@ package main
 import (
 	"mime"
 	"fmt"
+	"strings"
 	"net/http"
 	"os"
 	"syscall"
@@ -116,11 +117,29 @@ func readDirectory(c *gin.Context, path string) {
 	c.JSON(200, entries)
 }
 
+// func getFileByName(c *gin.Context) {
+//     filename := c.Param("filename")
+//     c.Header("Content-Disposition", "attachment; filename=" + filename)
+//     c.File("./uploads/" + filename)
+// }
+
 func getFileByName(c *gin.Context) {
     filename := c.Param("filename")
-    c.Header("Content-Disposition", "attachment; filename=" + filename)
-    c.File("./uploads/" + filename)
+    path := "./uploads/" + filename
+
+    // Ensure EPUB is sent correctly
+    if strings.HasSuffix(strings.ToLower(filename), ".epub") {
+        c.Header("Content-Type", "application/epub+zip")
+    }
+
+    c.Header(
+        "Content-Disposition",
+        fmt.Sprintf(`attachment; filename="%s"`, filename),
+    )
+
+    c.File(path)
 }
+
 
 func postNewDir(c *gin.Context) {
 	path := c.Param("path")
