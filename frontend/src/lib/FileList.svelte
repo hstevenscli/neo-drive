@@ -386,7 +386,8 @@
                     </span>
                 </button>
                 <button onclick={() => {
-                    downloadFile(file.Name);
+                    let p2 = path.join("")
+                    downloadFile(p2 + "/" + file.Name);
                     document.activeElement.blur();
                     }}
                 class="button" aria-label="Download">
