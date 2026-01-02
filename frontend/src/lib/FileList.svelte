@@ -145,6 +145,15 @@
                 console.log("Path", displayPath);
                 getDirectory(p);
                 break;
+            case "Backspace":
+                // Go up  asingle directory by popping 1 elt from path
+                // get directory using path
+                path.pop();
+                displayPath.pop();
+                let pbackspace = path.join("/");
+                console.log("Path", displayPath);
+                getDirectory(pbackspace);
+                break;
             case "j":
                 decreaseIndex();
                 break;
