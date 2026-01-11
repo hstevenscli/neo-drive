@@ -67,6 +67,8 @@ func main() {
 	r.POST("/upload/*path", handleFileUpload)
 	r.POST("/dir/*path", postNewDir)
 
+	r.PUT("/rename/*path", renameFile)
+
 	// DELETE ROUTES
 	r.DELETE("files/*filename", deleteFileByName)
 

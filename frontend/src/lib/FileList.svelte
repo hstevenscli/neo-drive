@@ -20,6 +20,7 @@
     let errorIndex = $state(-1)
     let fileEditModalActive = $state(false);
     let fileToEdit = $state('');
+    let fakeProp = $state("FTHISSHIT")
 
     // Path  and displayPath contain the same items, the only difference
     // being that each item in path starts with a / while displayPath elements
@@ -228,11 +229,22 @@
         console.log("Index after:", fileIndex);
     }
 
-    async function editFileName(path, newName) {
+    async function editFileName(newName) {
         // convert path into something usable
         console.log("Path:", path)
-        console.log("NewName:", newName)
-        console.log("New Name");
+        let p = `${path}/${fileToEdit}`
+        let url = `/rename${p}`;
+        console.log(url);
+        let body = {
+            "newname": newName,
+        }
+        let response = await fetch(url, {
+            method: "PUT",
+            body: JSON.stringify(body)
+        })
+        let json = response.json();
+        console.log(json)
+        // TODO: Need to do the UI now, it works, but need to update current directory and clear the name change mdoal
     }
 
     function decreaseIndex() {
@@ -340,7 +352,7 @@
         <CreateDir bind:activeModalsObj { path } { mkdir }></CreateDir>
     {/if}
     {#if activeModalsObj.fileEditModal}
-        <FileEdit bind:activeModalsObj { fileToEdit } { editFileName } { path } ></FileEdit>
+        <FileEdit bind:activeModalsObj { fileToEdit } { editFileName } ></FileEdit>
     {/if}
 
     <DeleteConfirmation bind:deleteModalActive { path } { getDirectory } { files } { fileToDelete} { adjustIndex } />

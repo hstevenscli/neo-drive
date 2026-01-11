@@ -140,6 +140,33 @@ func getFileByName(c *gin.Context) {
     c.File(path)
 }
 
+// takes in the full path to the current file, and a new name to change it in place
+// (doenst change location)
+func renameFile(c *gin.Context) {
+	path := c.Param("path")
+	fmt.Println("path:", path)
+	type Request struct {
+		Newname string `json:"newname"`
+	}
+	r := Request{}
+	c.BindJSON(&r)
+	fmt.Println("newname:", r)
+	// func Rename(oldpath, newpath string) error
+	pathSlice := strings.Split(path, "/")
+	fmt.Println("slice:", pathSlice)
+	newPath := strings.Join(pathSlice[:len(pathSlice) - 1], "/")
+	newPathComplete := fmt.Sprintf("%s/%s", newPath, r.Newname)
+	fmt.Println("newPath:", newPathComplete)
+
+	err := os.Rename("./uploads/" + path, "./uploads" + newPathComplete)
+
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Internal server error"})
+		return
+	}
+	c.JSON(204, gin.H{"status": "successfully renamed file"})
+}
 
 func postNewDir(c *gin.Context) {
 	path := c.Param("path")

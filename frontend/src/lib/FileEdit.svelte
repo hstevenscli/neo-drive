@@ -1,7 +1,7 @@
 <script>
 
     import { setLKP, getLKP } from "./state.svelte";
-    let { activeModalsObj = $bindable(), fileToEdit, editFileName, path } = $props();
+    let { activeModalsObj = $bindable(), fileToEdit, editFileName } = $props();
 
     let newName = $state(fileToEdit);
     function closeModal() {
@@ -25,6 +25,8 @@
     function confirmFile() {
         console.log("File name changed");
     }
+
+    
 </script>
 
 <div class="modal is-active has-text-centered">
@@ -35,7 +37,7 @@
     <div class="buttons is-flex is-justify-content-center mt-3">
         <button onclick={() => {
                 console.log("Confirm");
-                editFileName(path, newName);
+                editFileName(newName);
             }} class="button is-link">Confirm</button>
         <button onclick={(event) => {
             event.stopPropagation();
