@@ -210,6 +210,9 @@
                 activeModalsObj.createDirModal = true;
                 console.log("Command mode");
                 break;
+            case "r":
+                genericOpenModal("fileEditModal");
+                fileToEdit = files[fileIndex].Name;
         }
         adjustIndex();
     }
@@ -242,8 +245,12 @@
             method: "PUT",
             body: JSON.stringify(body)
         })
-        let json = response.json();
-        console.log(json)
+        if (response.ok) {
+            console.log("Name change successful");
+            getDirectory(path);
+        } else {
+            console.log("Error changing name");
+        }
         // TODO: Need to do the UI now, it works, but need to update current directory and clear the name change mdoal
     }
 

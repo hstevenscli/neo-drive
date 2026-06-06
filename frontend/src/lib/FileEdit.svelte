@@ -1,7 +1,9 @@
 <script>
 
     import { setLKP, getLKP } from "./state.svelte";
+    import { onMount, tick } from 'svelte';
     let { activeModalsObj = $bindable(), fileToEdit, editFileName } = $props();
+    let inputD;
 
     let newName = $state(fileToEdit);
     function closeModal() {
@@ -18,7 +20,8 @@
             closeModal();
         }
         if (getLKP() === 'Enter') {
-            confirmFile();
+            editFileName(newName);
+            closeModal();
         }
     }
 
@@ -26,18 +29,26 @@
         console.log("File name changed");
     }
 
-    
+    onMount(async () => {
+        await tick();
+        setTimeout(() => {
+            inputD.focus();
+        }, 10)
+    })
+
+
 </script>
 
 <div class="modal is-active has-text-centered">
   <div class="modal-background"></div>
   <div class="modal-content">
     <p class="title is-3">New Filename:<br></p>
-    <input class="input" type="text" bind:value={newName}>
+    <input class="input" type="text" bind:value={newName} bind:this={inputD}>
     <div class="buttons is-flex is-justify-content-center mt-3">
         <button onclick={() => {
                 console.log("Confirm");
                 editFileName(newName);
+                closeModal();
             }} class="button is-link">Confirm</button>
         <button onclick={(event) => {
             event.stopPropagation();
