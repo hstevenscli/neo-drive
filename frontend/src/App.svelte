@@ -16,7 +16,19 @@
         keyPressedCounter++;
     }
 
+    async function checkLoggedIn() {
+        let url = "/session";
+        let response = await fetch(url);
+        if (response.ok) {
+            console.log("Logged In");
+            loggedIn = true;
+        } else {
+            console.log("Not Logged In");
+        }
+    }
+
     onMount(() => {
+        checkLoggedIn();
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     })

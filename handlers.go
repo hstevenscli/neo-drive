@@ -1,13 +1,14 @@
 package main
 
 import (
-	"mime"
 	"fmt"
-	"strings"
+	"mime"
 	"net/http"
 	"os"
-	"syscall"
 	"path/filepath"
+	"strings"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,7 +26,7 @@ type fileObj struct {
 }
 
 type dirEntry struct {
-	Name string
+	Name  string
 	IsDir bool
 }
 
@@ -33,21 +34,21 @@ var validPasswords = map[string]bool{
 	"monke": true,
 }
 
-var viewableFileTypes = map[string]bool {
-	".txt": true,
+var viewableFileTypes = map[string]bool{
+	".txt":  true,
 	".html": true,
-	".md": true,
-	".cpp": true,
-	".py": true,
-	".cxx": true,
-	".c": true,
-	".h": true,
-	".csv": true,
-	".png": true,
-	".jpg": true,
+	".md":   true,
+	".cpp":  true,
+	".py":   true,
+	".cxx":  true,
+	".c":    true,
+	".h":    true,
+	".csv":  true,
+	".png":  true,
+	".jpg":  true,
 	".jpeg": true,
-	".pdf": true,
-	".js": true,
+	".pdf":  true,
+	".js":   true,
 }
 
 func postLogin(c *gin.Context) {
@@ -59,38 +60,48 @@ func postLogin(c *gin.Context) {
 	password := os.Getenv("PASSWORD")
 	fmt.Println("got pw", pw)
 	fmt.Println("password:", password)
+	// If authenticated
 	if pw.Password == password {
-		c.JSON(200, gin.H{"status": "success"})
-		return
-	}
-	c.JSON(401, gin.H{"status": "incorrect password"})
-}
+		sessionID, err := generateSessionID()
+		// Session ID Error
+		if err != nil {
+			fmt.Println("Error Generating ID")
+			c.JSON(500, gin.H{"status": "Internal server error, please try again later"})
+			return
+		}
+		sessionStore[sessionID] = session{SessionID: sessionID, Timestamp: time.Now().Add(time.Hour * 24 * 30)}
+		c.SetCookie("Neodrive_Cookie", sessionID, 60*60*24*30, "/", getCookieDomain(), false, false)
 
+		fmt.Println("session store: ", sessionStore)
+		c.JSON(200, gin.H{"status": "successfully logged in"})
+	} else {
+		c.JSON(401, gin.H{"status": "invalid username or password"})
+	}
+}
 
 func handleFileUpload(c *gin.Context) {
 	path := c.Param("path")
 	form, err := c.MultipartForm()
-    if err != nil {
-        c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid upload"})
-        return
-    }
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid upload"})
+		return
+	}
 
-    files := form.File["files"] // must match the name in formData.append("files", ...)
-    for _, file := range files {
-        // Save each file or process as needed
-        err := c.SaveUploadedFile(file, "./uploads/" + path + "/" + file.Filename)
+	files := form.File["files"] // must match the name in formData.append("files", ...)
+	for _, file := range files {
+		// Save each file or process as needed
+		err := c.SaveUploadedFile(file, "./uploads/"+path+"/"+file.Filename)
 		fmt.Println("Path:", path)
 		fmt.Println("Filename:", file.Filename)
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
-            return
-        }
-    }
-    c.JSON(201, gin.H{"message": "Files uploaded successfully"})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file"})
+			return
+		}
+	}
+	c.JSON(201, gin.H{"message": "Files uploaded successfully"})
 }
 
-
-//TODO in progress changing filenames []string -> entries []dirEntry
+// TODO in progress changing filenames []string -> entries []dirEntry
 func readDirectory(c *gin.Context, path string) {
 	fmt.Println("Getting directory")
 	files, err := os.ReadDir("./uploads/" + path)
@@ -106,7 +117,7 @@ func readDirectory(c *gin.Context, path string) {
 	for _, file := range files {
 		fmt.Println(file.Name())
 		de := dirEntry{
-			Name: file.Name(),
+			Name:  file.Name(),
 			IsDir: file.IsDir(),
 		}
 		entries = append(entries, de)
@@ -124,20 +135,20 @@ func readDirectory(c *gin.Context, path string) {
 // }
 
 func getFileByName(c *gin.Context) {
-    filename := c.Param("filename")
-    path := "./uploads/" + filename
+	filename := c.Param("filename")
+	path := "./uploads/" + filename
 
-    // Ensure EPUB is sent correctly
-    if strings.HasSuffix(strings.ToLower(filename), ".epub") {
-        c.Header("Content-Type", "application/epub+zip")
-    }
+	// Ensure EPUB is sent correctly
+	if strings.HasSuffix(strings.ToLower(filename), ".epub") {
+		c.Header("Content-Type", "application/epub+zip")
+	}
 
-    c.Header(
-        "Content-Disposition",
-        fmt.Sprintf(`attachment; filename="%s"`, filename),
-    )
+	c.Header(
+		"Content-Disposition",
+		fmt.Sprintf(`attachment; filename="%s"`, filename),
+	)
 
-    c.File(path)
+	c.File(path)
 }
 
 // takes in the full path to the current file, and a new name to change it in place
@@ -154,12 +165,11 @@ func renameFile(c *gin.Context) {
 	// func Rename(oldpath, newpath string) error
 	pathSlice := strings.Split(path, "/")
 	fmt.Println("slice:", pathSlice)
-	newPath := strings.Join(pathSlice[:len(pathSlice) - 1], "/")
+	newPath := strings.Join(pathSlice[:len(pathSlice)-1], "/")
 	newPathComplete := fmt.Sprintf("%s/%s", newPath, r.Newname)
 	fmt.Println("newPath:", newPathComplete)
 
-	err := os.Rename("./uploads/" + path, "./uploads" + newPathComplete)
-
+	err := os.Rename("./uploads/"+path, "./uploads"+newPathComplete)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": "Internal server error"})
@@ -170,11 +180,11 @@ func renameFile(c *gin.Context) {
 
 func postNewDir(c *gin.Context) {
 	path := c.Param("path")
-	err := os.Mkdir("./uploads/" + path, 0755)
+	err := os.Mkdir("./uploads/"+path, 0755)
 	if err != nil {
 		c.JSON(500, gin.H{
-			"status": "Error creating directory", 
-			"error": err.Error(),
+			"status": "Error creating directory",
+			"error":  err.Error(),
 		})
 		fmt.Println(err.Error())
 		return
@@ -226,6 +236,6 @@ func deleteFileByName(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "couldn't delete file"})
 		return
 	}
-	c.JSON(200, gin.H{"status": "Successfully deleted file: "+ filename})
+	c.JSON(200, gin.H{"status": "Successfully deleted file: " + filename})
 	return
 }

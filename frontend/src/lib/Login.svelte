@@ -31,6 +31,7 @@
         password = '';
         console.log("Last key pressed", getLKP());
     }
+
     let i = 0;
     function addLetter() {
         let letters = "Welcome to NeoDrive";
